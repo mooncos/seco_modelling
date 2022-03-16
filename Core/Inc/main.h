@@ -56,7 +56,7 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
-void getVoltage(int voltage, TIM_HandleTypeDef* tim1);
+void getVoltage(float voltage, TIM_HandleTypeDef* tim1);
 
 /* USER CODE END EFP */
 

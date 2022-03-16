@@ -101,7 +101,11 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
 
-  getVoltage(3, &htim3);
+  getVoltage(2, &htim3);
+
+  uint8_t str[] = "Hello Marcos \r\n";
+
+  HAL_UART_Transmit(&huart2, str, sizeof(str), 10);
 
   // 20% duty es 105-1 en el Pulse de un pwm lo hemos desactivado para probar el encoder
 
@@ -344,17 +348,17 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void getVoltage(int voltage, TIM_HandleTypeDef* tim1){
+void getVoltage(float voltage, TIM_HandleTypeDef* tim1){
 
 //	__HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_1, (pulse + CH1_FREQ));
 
 	int pulse = 0;
 
-	if (voltage > 12 || voltage < -12) {
+	if (voltage > 12.0 || voltage < -12.0) {
 		pulse = 525 - 1;
 	}
 
-	if (voltage >= 0 ) {
+	if (voltage >= 0.0 ) {
 		pulse =(int) ((525 - 1)*voltage/12);
 		__HAL_TIM_SET_COMPARE(tim1, TIM_CHANNEL_1, pulse );
 		__HAL_TIM_SET_COMPARE(tim1, TIM_CHANNEL_2, 0 );
