@@ -40,12 +40,16 @@
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+uint8_t cur_voltage;
+volatile uint8_t finished = 0;
+extern uint16_t ms;
+extern uint16_t muestras[12][1200];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -54,6 +58,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -94,20 +99,41 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   MX_TIM1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
+  getVoltage(1, &htim3);
+  for (cur_voltage = 1; cur_voltage <= 12; cur_voltage++) {
+	  //generador de experimentos
+	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	  HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
+	  HAL_TIM_Base_Start_IT(&htim2);
+	  // polling wait for finish
+	  while (!finished);
+	  finished = 0;
+  }
 
-  getVoltage(2, &htim3);
+  // halt everything
+  HAL_TIM_Base_Stop_IT(&htim2);
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_Encoder_Stop(&htim1, TIM_CHANNEL_ALL);
+  __HAL_TIM_SET_COUNTER(&htim1, 0);
 
-  uint8_t str[] = "Hello Marcos \r\n";
-
-  HAL_UART_Transmit(&huart2, str, sizeof(str), 10);
-
-  // 20% duty es 105-1 en el Pulse de un pwm lo hemos desactivado para probar el encoder
+  for (int i = 0; i < 12; i++) {
+	  uint8_t e[100] = {0};
+	  sprintf(e, "Experiment %d\r\n", i);
+	  HAL_UART_Transmit(&huart2, e, sizeof(e), 10);
+	  for (int j = 0; j < 1200; j++) {
+		  uint8_t m[100] = {0};
+		  sprintf(m, "%d %d\r\n", j, muestras[i][j]);
+		  HAL_UART_Transmit(&huart2, m, sizeof(m), 10);
+		  HAL_Delay(20);
+	  }
+  }
 
   /* USER CODE END 2 */
 
@@ -158,7 +184,7 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV8;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
@@ -218,6 +244,51 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 84000-1;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief TIM3 Initialization Function
   * @param None
   * @retval None
@@ -239,7 +310,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 525-1;
+  htim3.Init.Period = 2100-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -355,15 +426,15 @@ void getVoltage(float voltage, TIM_HandleTypeDef* tim1){
 	int pulse = 0;
 
 	if (voltage > 12.0 || voltage < -12.0) {
-		pulse = 525 - 1;
+		pulse = 2100-1;
 	}
 
 	if (voltage >= 0.0 ) {
-		pulse =(int) ((525 - 1)*voltage/12);
+		pulse =(int) ((2100-1)*voltage/12);
 		__HAL_TIM_SET_COMPARE(tim1, TIM_CHANNEL_1, pulse );
 		__HAL_TIM_SET_COMPARE(tim1, TIM_CHANNEL_2, 0 );
 	} else {
-		pulse =(int) (-(525 - 1)*voltage/12);
+		pulse =(int) (-(2100-1)*voltage/12);
 		__HAL_TIM_SET_COMPARE(tim1, TIM_CHANNEL_1, 0);
 		__HAL_TIM_SET_COMPARE(tim1, TIM_CHANNEL_2, pulse);
 	}

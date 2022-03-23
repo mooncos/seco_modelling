@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
+#include <stdio.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -41,6 +42,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+uint16_t ms = 0;
+uint16_t cnt1 = 0;
+uint16_t muestras[12][1200] = {0};
 
 /* USER CODE END PV */
 
@@ -55,9 +59,13 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+extern TIM_HandleTypeDef htim2;
 /* USER CODE BEGIN EV */
-
+extern UART_HandleTypeDef huart2;
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim3;
+extern uint8_t cur_voltage;
+extern uint8_t finished;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -81,6 +89,46 @@ void NMI_Handler(void)
 /**
   * @brief This function handles Hard fault interrupt.
   */
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+
+  /* USER CODE END TIM2_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim2);
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+
+  if (ms > 1999) {
+	  // mandar una interrupcion para que el uart envie el buffer por consola y aparte apagar el timer y resetearlo
+	  HAL_TIM_Base_Stop_IT(&htim2);
+	  __HAL_TIM_SET_COUNTER(&htim2, 0);
+	  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+	  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+	  HAL_TIM_Encoder_Stop(&htim1, TIM_CHANNEL_ALL);
+	  __HAL_TIM_SET_COUNTER(&htim1, 0);
+
+	  // activar flag para el uart que envie
+	  getVoltage(cur_voltage+1, &htim3);
+	  ms = 0;
+	  finished = 1;
+  } else {
+
+  if (ms == 599) {
+	  // set voltage al nivel del voltage pero negativo
+	  // getvoltage
+	  getVoltage(0, &htim3);
+  }
+
+  cnt1 = __HAL_TIM_GET_COUNTER(&htim1);
+  muestras[cur_voltage-1][ms++] = cnt1;
+
+  //sprintf(msg, "%d %d\r\n", ++ms, cnt1);
+
+  //HAL_UART_Transmit(&huart2, msg, sizeof(msg), 2);
+
+  /* USER CODE END TIM2_IRQn 1 */
+}
+}
+
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
@@ -198,6 +246,9 @@ void SysTick_Handler(void)
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
 
+/**
+  * @brief This function handles TIM2 global interrupt.
+  */
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
