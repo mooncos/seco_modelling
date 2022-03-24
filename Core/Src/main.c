@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -103,6 +104,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
+  HAL_Delay(1000);
   getVoltage(1, &htim3);
   for (cur_voltage = 1; cur_voltage <= 12; cur_voltage++) {
 	  //generador de experimentos
@@ -123,15 +125,19 @@ int main(void)
   HAL_TIM_Encoder_Stop(&htim1, TIM_CHANNEL_ALL);
   __HAL_TIM_SET_COUNTER(&htim1, 0);
 
+uint8_t w[100] = {0};
+sprintf(w, "Start Positive Voltage Experiments\r\n");
+HAL_UART_Transmit(&huart2, w, sizeof(w), 10);
+
   for (int i = 0; i < 12; i++) {
 	  uint8_t e[100] = {0};
-	  sprintf(e, "Experiment %d\r\n", i);
+	  sprintf(e, "Experiment %d\r\n", i+1);
 	  HAL_UART_Transmit(&huart2, e, sizeof(e), 10);
 	  for (int j = 0; j < 1200; j++) {
 		  uint8_t m[100] = {0};
 		  sprintf(m, "%d %d\r\n", j, muestras[i][j]);
 		  HAL_UART_Transmit(&huart2, m, sizeof(m), 10);
-		  HAL_Delay(20);
+		  //HAL_Delay(20);
 	  }
   }
 

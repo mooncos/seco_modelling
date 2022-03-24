@@ -44,7 +44,7 @@
 /* USER CODE BEGIN PV */
 uint16_t ms = 0;
 uint16_t cnt1 = 0;
-uint16_t muestras[12][1200] = {0};
+uint16_t muestras[12][1200] = {};
 
 /* USER CODE END PV */
 
@@ -97,7 +97,7 @@ void TIM2_IRQHandler(void)
   HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
 
-  if (ms > 1999) {
+  if (ms > 1199) {
 	  // mandar una interrupcion para que el uart envie el buffer por consola y aparte apagar el timer y resetearlo
 	  HAL_TIM_Base_Stop_IT(&htim2);
 	  __HAL_TIM_SET_COUNTER(&htim2, 0);
@@ -107,7 +107,7 @@ void TIM2_IRQHandler(void)
 	  __HAL_TIM_SET_COUNTER(&htim1, 0);
 
 	  // activar flag para el uart que envie
-	  getVoltage(cur_voltage+1, &htim3);
+	  getVoltage((cur_voltage+1), &htim3);
 	  ms = 0;
 	  finished = 1;
   } else {
