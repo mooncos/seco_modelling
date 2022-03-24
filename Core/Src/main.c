@@ -108,12 +108,12 @@ int main(void)
   getVoltage(1, &htim3);
   for (cur_voltage = 1; cur_voltage <= 12; cur_voltage++) {
 	  //generador de experimentos
+	  HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
 	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-	  HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
 	  HAL_TIM_Base_Start_IT(&htim2);
 	  // polling wait for finish
-	  while (!finished);
+	  while (!finished) HAL_Delay(100);
 	  finished = 0;
   }
 
@@ -125,9 +125,9 @@ int main(void)
   HAL_TIM_Encoder_Stop(&htim1, TIM_CHANNEL_ALL);
   __HAL_TIM_SET_COUNTER(&htim1, 0);
 
-uint8_t w[100] = {0};
-sprintf(w, "Start Positive Voltage Experiments\r\n");
-HAL_UART_Transmit(&huart2, w, sizeof(w), 10);
+  uint8_t w[100] = {0};
+  sprintf(w, "Start Positive Voltage Experiments\r\n");
+  HAL_UART_Transmit(&huart2, w, sizeof(w), 10);
 
   for (int i = 0; i < 12; i++) {
 	  uint8_t e[100] = {0};
