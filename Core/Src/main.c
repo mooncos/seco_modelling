@@ -50,7 +50,7 @@ UART_HandleTypeDef huart2;
 uint8_t cur_voltage;
 volatile uint8_t finished = 0;
 extern uint16_t ms;
-extern uint16_t muestras[12][1200];
+extern uint16_t muestras[12][1201];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -133,7 +133,7 @@ HAL_UART_Transmit(&huart2, w, sizeof(w), 10);
 	  uint8_t e[100] = {0};
 	  sprintf(e, "Experiment %d\r\n", i+1);
 	  HAL_UART_Transmit(&huart2, e, sizeof(e), 10);
-	  for (int j = 0; j < 1200; j++) {
+	  for (int j = 0; j < 1201; j++) {
 		  uint8_t m[100] = {0};
 		  sprintf(m, "%d %d\r\n", j, muestras[i][j]);
 		  HAL_UART_Transmit(&huart2, m, sizeof(m), 10);
