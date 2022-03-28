@@ -145,6 +145,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL); // for manual counter counting value
   while (1)
   {
     /* USER CODE END WHILE */
