@@ -105,7 +105,7 @@ int main(void)
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
   HAL_Delay(1000);
-  getVoltage(1, &htim3);
+  setVoltage(1, &htim3);
   for (cur_voltage = 1; cur_voltage <= 12; cur_voltage++) {
 	  //generador de experimentos
 	  HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
@@ -426,7 +426,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void getVoltage(float voltage, TIM_HandleTypeDef* tim1){
+void setVoltage(float voltage, TIM_HandleTypeDef* tim1){
 
 //	__HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_1, (pulse + CH1_FREQ));
 

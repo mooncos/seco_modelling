@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (9-2020-q2-update)
+# Toolchain: GNU Tools for STM32 (10.3-2021.10)
 ################################################################################
 
 -include ../makefile.init
@@ -43,14 +43,14 @@ BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ART
 EXECUTABLES += \
 seco_me.elf \
 
+MAP_FILES += \
+seco_me.map \
+
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
 seco_me.list \
-
-OBJCOPY_BIN += \
-seco_me.bin \
 
 
 # All Target
@@ -60,8 +60,8 @@ all: main-build
 main-build: seco_me.elf secondary-outputs
 
 # Tool invocations
-seco_me.elf: $(OBJS) $(USER_OBJS) C:\Users\mgbra\STM32CubeIDE\workspace_seco\seco_me\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "seco_me.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\mgbra\STM32CubeIDE\workspace_seco\seco_me\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="seco_me.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+seco_me.elf seco_me.map: $(OBJS) $(USER_OBJS) C:\Users\cconf\OneDrive\Documentos\TELECO\4\4.2\SECO\projects\seco\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "seco_me.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\cconf\OneDrive\Documentos\TELECO\4\4.2\SECO\projects\seco\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="seco_me.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -75,17 +75,12 @@ seco_me.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-seco_me.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "seco_me.bin"
-	@echo 'Finished building: $@'
-	@echo ' '
-
 # Other Targets
 clean:
-	-$(RM) default.size.stdout seco_me.bin seco_me.elf seco_me.list
+	-$(RM) default.size.stdout seco_me.elf seco_me.list seco_me.map
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_BIN)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'
